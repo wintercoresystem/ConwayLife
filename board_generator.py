@@ -47,18 +47,22 @@ def display_board():
     print("---------------------------------------------------------------")
 
 def get_neighbours(cell_x, cell_y, board):
-    neighbours = 0
-    neighbours += board[cell_x + 1][cell_y]
-    neighbours += board[cell_x][cell_y + 1]
-    neighbours += board[cell_x + 1][cell_y + 1]
-    neighbours += board[cell_x - 1][cell_y]
-    neighbours += board[cell_x][cell_y - 1]
-    neighbours += board[cell_x - 1][cell_y - 1]
-    neighbours += board[cell_x + 1][cell_y - 1]
-    neighbours += board[cell_x - 1][cell_y + 1]
-        #     print(board[new_x, new_y] * 1, end=" ")
-        # print()
+    # neighbours += board[cell_x + 1][cell_y]
+    # neighbours += board[cell_x][cell_y + 1]
+    # neighbours += board[cell_x + 1][cell_y + 1]
+    # neighbours += board[cell_x - 1][cell_y]
+    # neighbours += board[cell_x][cell_y - 1]
+    # neighbours += board[cell_x - 1][cell_y - 1]
+    # neighbours += board[cell_x + 1][cell_y - 1]
+    # neighbours += board[cell_x - 1][cell_y + 1]
     # print(f"Neighbours at ({cell_x}, {cell_y}): {neighbours}")
+    neighbours = 0
+    for i in range(cell_x - 1, cell_x + 2):
+        for j in range(cell_y - 1, cell_y + 2):
+            neighbours += board[i][j]
+        print(neighbours, end=" ")
+    print()
+
     return neighbours
 
 
@@ -74,3 +78,7 @@ def new_cicle():
                 make_cell(x,y)
             elif neighbours > 3:
                 remove_cell(x,y)
+
+display_board()
+new_cicle()
+display_board()
