@@ -9,9 +9,10 @@ PADDING = 10                 # Surface padding
 CELL_PADDING = 2             # Cell padding aka grid thickness. Should be less than PADDING
 CELL_SIZE = 20
 BUTTON_SURFACE_WIDTH = 400   # Width of button surface. Change only this value
+BUTTON_BORDER_WIDTH = 5 
 
 FPS = 30                     # Frames per second of main window
-SIMULATION_SPEED = 0.5       # Time in seconds of table update
+SIMULATION_SPEED = 0.01      # Time in seconds of table update
 
 
 # Colors 

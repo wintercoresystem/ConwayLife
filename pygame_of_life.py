@@ -1,5 +1,6 @@
 from sys import exit
 import pygame
+import sys
 import numpy as np
 from settings_constants import *
 from random import randint
@@ -8,18 +9,20 @@ from multiprocessing import Process, Queue
 
 
 
+
 class Board:
     generation = 0
 
     def __init__(self):
         self.make_board()
-        self.populate_with_random()
+        # self.populate_with_random()
 
         self.process = Process(target=self.new_cicle_loop)
         self.queue = Queue()
         self.simulation_state = False
 
 
+    
     def make_board(self):
         self.board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype="bool")
 
@@ -40,11 +43,17 @@ class Board:
 
 
     def remove_cell(self, cell_x, cell_y, board):
-        board[cell_x][cell_y] = 0
+        try: 
+            board[cell_x][cell_y] = 0
+        except IndexError:
+            pass
 
 
     def make_cell(self, cell_x, cell_y, board):
-        board[cell_x][cell_y] = 1
+        try: 
+            board[cell_x][cell_y] = 1
+        except IndexError:
+            pass
 
 
     def get_neighbours(self, cell_x, cell_y, board):
@@ -61,16 +70,20 @@ class Board:
 
 
     def new_cicle(self):
+        print(f"Cicle {self.generation}")
         temp_board = np.copy(self.board)
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
                 neighbours = self.get_neighbours(x, y, self.board)
-                if neighbours < 2:
-                    self.remove_cell(x,y, temp_board)
-                elif neighbours == 3:
-                    self.make_cell(x,y, temp_board)
-                elif neighbours > 3:
-                    self.remove_cell(x,y, temp_board)
+
+                match neighbours:
+                    case 2:
+                        pass
+                    case 3:
+                        self.make_cell(x,y,temp_board)
+                    case _:
+                        self.remove_cell(x,y,temp_board)
+
         self.board = temp_board
         self.queue.put(temp_board)
         return temp_board
@@ -92,14 +105,14 @@ class Board:
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
                 if self.get_cell_state(x, y):
-                    color = COLOR_ACCENT_RED
+                    color = COLOR_DARK_PURPLE
                 else:
                     color = COLOR_WHITE
                 self.draw_one_cell(x,y, color)
 
-        if Board.generation == 0:
+        if self.generation == 0:
             self.center_board()
-        Board.generation += 1
+        self.generation += 1
 
 
     def center_board(self):
@@ -110,7 +123,6 @@ class Board:
 
     def new_cicle_loop(self):
         while True:
-            print("yeah")
             self.draw_all_board()
             sleep(SIMULATION_SPEED)
             self.new_cicle()
@@ -132,8 +144,40 @@ class Board:
             self.simulation_state = False
 
 
+class Button:
+    def __init__(self, pos_x, pos_y, width, height, text):
+        self.x = pos_x
+        self.y = pos_y
+        self.width = width
+        self.height = height
+        self.text = text
+
+        self.button_rect = pygame.Rect((self.x, self.y), (self.width, self.height))
+        self.inner_border = pygame.Rect((self.x + BUTTON_BORDER_WIDTH,  self.y + BUTTON_BORDER_WIDTH), 
+                                        (self.width - BUTTON_BORDER_WIDTH * 2, self.height - BUTTON_BORDER_WIDTH * 2))
+
+        self.text_surf = font.render(self.text, True, COLOR_WHITE)
+        self.text_rect = self.text_surf.get_rect(center = self.button_rect.center)
+
+
+
+    def change_text(self, new_text):
+        ...
+
+    def draw_button(self):
+        pygame.draw.rect(screen, COLOR_ACCENT_BLUE, self.button_rect, border_radius=14)
+        pygame.draw.rect(screen, COLOR_BACKGROUND_BRIGHT, self.inner_border, border_radius=11)
+        screen.blit(self.text_surf, self.text_rect)
+
+    
+    def button_click(self):
+        ...
+
+
+pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT)) 
+font = pygame.font.SysFont("Fira Code", 20)
 clock = pygame.time.Clock()
 
 board_surface = pygame.Surface(BOARD_SURFACE_DIM)
@@ -142,12 +186,14 @@ inner_board_surface = pygame.Surface((BOARD_SIZE_IN_PX, BOARD_SIZE_IN_PX))
 button_surface = pygame.Surface(BUTTON_SURFACE_DIM)
 
 game_board = Board()
+start_button = Button(BOARD_SURFACE_DIM[0] + PADDING * 3, PADDING * 2, BUTTON_SURFACE_WIDTH - PADDING * 3, 50, "Start") 
 
-middle_button_drag = False
-first_button_drag = False
 
 game_board.run_simulation()
 
+middle_button_drag = False
+first_button_drag = False
+simulation_state_before_drag = False
 
 while True:
     for event in pygame.event.get():
@@ -155,6 +201,7 @@ while True:
             print("Exiting...")
             game_board.stop_simulation()
             pygame.quit()
+            print("Done!")
             exit()
 
     # Mouse events
@@ -168,6 +215,7 @@ while True:
                     column = ((mouse_y - Board.board_rect.y - PADDING) // CELL_SIZE)
                     state = game_board.get_cell_state(row, column)
 
+                    simulation_state_before_drag = game_board.simulation_state
                     game_board.stop_simulation()
                     if state == 1:
                         game_board.remove_cell(row, column, game_board.board)
@@ -221,39 +269,44 @@ while True:
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:            
                 first_button_drag = False
-                game_board.run_simulation()
+                if simulation_state_before_drag:
+                    game_board.run_simulation()
+
             if event.button == 2:            
                 middle_button_drag = False
-
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 game_board.board = game_board.new_cicle()
             if event.key == pygame.K_a:
                 game_board.run_simulation()
+
             if event.key == pygame.K_d:
                 game_board.stop_simulation()
+
             if event.key == pygame.K_w:
                 SIMULATION_SPEED /= 1.1
+                print(f"Sim speed: {SIMULATION_SPEED}")
                 game_board.stop_simulation()
                 game_board.run_simulation()
             if event.key == pygame.K_s:
                 SIMULATION_SPEED *= 1.1
+                print(f"Sim speed: {SIMULATION_SPEED}")
                 game_board.stop_simulation()
                 game_board.run_simulation()
-                
 
-
-    game_board.draw_all_board()
 
     screen.fill(COLOR_BACKGROUND)
     board_surface.fill(COLOR_BACKGROUND_BRIGHT)
     button_surface.fill(COLOR_BACKGROUND_BRIGHT)
 
+    game_board.draw_all_board()
 
     board_surface.blit(inner_board_surface, (Board.board_rect.topleft))
     screen.blit(board_surface, (PADDING, PADDING))
     screen.blit(button_surface, (PADDING + BOARD_SURFACE_DIM[0] + PADDING, PADDING))
+
+    start_button.draw_button()
 
     pygame.display.update()
     clock.tick(FPS)
