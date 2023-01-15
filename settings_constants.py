@@ -12,13 +12,14 @@ BUTTON_SURFACE_WIDTH = 400   # Width of button surface. Change only this value
 BUTTON_BORDER_WIDTH = 5 
 
 FPS = 30                     # Frames per second of main window
-SIMULATION_SPEED = 0.01      # Time in seconds of table update
+SIMULATION_SPEED = 0.1      # Time in seconds of table update
 
 
 # Colors 
 COLOR_BACKGROUND = (22, 22, 30)
 COLOR_BACKGROUND_BRIGHT = (26, 27, 38)
 COLOR_WHITE = (192, 202, 245)
+COLOR_WHITE_FADED = (230, 194, 230)
 
 COLOR_DARK_PURPLE = "#231123"
 COLOR_ACCENT_BLUE = "#7AA2F7"

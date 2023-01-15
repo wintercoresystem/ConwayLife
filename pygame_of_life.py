@@ -23,40 +23,47 @@ class Board:
 
 
     
-    def make_board(self):
+    # Initialize board with only zeroes
+    def make_board(self) -> None:
         self.board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype="bool")
 
 
-    def populate_with_random(self):
+    # Randomly make alive cells in board using NUMBER_OF_RANDOM_CELLS from settings
+    def populate_with_random(self) -> None:
         self.board[0][0] = True
         for _ in range(NUMBER_OF_RANDOM_CELLS):
             x, y = randint(0, BOARD_SIZE - 1), randint(0, BOARD_SIZE - 1)
             self.board[x][y] = True
 
 
-    def zerofy_board(self):
+    # Clear board 
+    def zerofy_board(self) -> None:
         self.board.fill(0)
 
 
-    def get_cell_state(self, cell_x, cell_y):
+    # Get cell state using x and y coordinates
+    def get_cell_state(self, cell_x, cell_y) -> bool:
         return self.board[cell_x][cell_y] == 1
 
 
-    def remove_cell(self, cell_x, cell_y, board):
+    # Kill cell (turn off) using x and y coordinates
+    def remove_cell(self, cell_x, cell_y, board) -> None:
         try: 
             board[cell_x][cell_y] = 0
         except IndexError:
             pass
 
 
-    def make_cell(self, cell_x, cell_y, board):
+    # Born cell (turn on) using x and y coordinates
+    def make_cell(self, cell_x, cell_y, board) -> None:
         try: 
             board[cell_x][cell_y] = 1
         except IndexError:
             pass
 
 
-    def get_neighbours(self, cell_x, cell_y, board):
+    # Get alive neighbours by Moore neighbourhood
+    def get_neighbours(self, cell_x, cell_y, board) -> int:
         neighbours = 0
         for i in range(cell_x - 1, cell_x + 2):
             for j in range(cell_y - 1, cell_y + 2):
@@ -69,13 +76,21 @@ class Board:
         return neighbours
 
 
-    def new_cicle(self):
-        print(f"Cicle {self.generation}")
-        temp_board = np.copy(self.board)
+    # Create new generation using rules in match statement using neighbours count
+    def new_cicle(self) -> None:
+        # print(f"Cicle {self.generation}")
+        # We need to make temporary board so neighbours doesn't affected by actions we make during this generation
+        temp_board = np.copy(self.board) 
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
                 neighbours = self.get_neighbours(x, y, self.board)
-
+                """
+                This is basic B3/23S rule:
+                Any live cell with fewer than two live neighbours dies (referred to as underpopulation or exposure).
+                Any live cell with more than three live neighbours dies (referred to as overpopulation or overcrowding).
+                Any live cell with two or three live neighbours lives, unchanged, to the next generation.
+                Any dead cell with exactly three live neighbours will come to life.
+                """
                 match neighbours:
                     case 2:
                         pass
@@ -89,14 +104,16 @@ class Board:
         return temp_board
 
 
-    def draw_one_cell(self, row, column, color):
+    # This is function to draw one cell from the board according to its coordinates and state
+    def draw_one_cell(self, row, column, color) -> None:
         cell_rect = pygame.Rect(row * CELL_SIZE,        # Cell x position
                                 column * CELL_SIZE,     # Cell y position
                                 CELL_SIZE - CELL_PADDING, CELL_SIZE - CELL_PADDING) # Cell size
         pygame.draw.rect(inner_board_surface, color, cell_rect)
 
 
-    def draw_all_board(self):
+    # Draw entire board
+    def draw_all_board(self) -> None:
         if self.queue.empty():
             pass
         else:
@@ -104,37 +121,62 @@ class Board:
 
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
+                # This is on state color
                 if self.get_cell_state(x, y):
                     color = COLOR_DARK_PURPLE
+
+                # This is off state color
                 else:
-                    color = COLOR_WHITE
+                    if self.simulation_state: # This is color while simulation is running
+                        color = COLOR_WHITE
+                    else:
+                        color = COLOR_WHITE_FADED # This is color while simulation is stopped
                 self.draw_one_cell(x,y, color)
 
-        if self.generation == 0:
+        if self.generation == 0: # Center board in the begining
             self.center_board()
+        self.return_to_board()
+
         self.generation += 1
 
 
-    def center_board(self):
+    # Focus center of the board
+    def center_board(self) -> None:
         board_center = inner_board_surface.get_rect()
         board_center.center = BOARD_SURFACE_CENTER
         Board.board_rect = board_center
 
 
-    def new_cicle_loop(self):
+    # You can't go out of bounds
+    def return_to_board(self) -> None:
+        if self.board_rect.x > 500:
+            self.board_rect.x = 500
+        if self.board_rect.y > 500:
+            self.board_rect.y = 500
+        if self.board_rect.x < -BOARD_SIZE_IN_PX + 500:
+            self.board_rect.x = -BOARD_SIZE_IN_PX + 500
+        if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
+            self.board_rect.y = -BOARD_SIZE_IN_PX + 500
+
+
+    # Process of making new cicles at specific speed using settings SIMULATION_SPEED
+    def new_cicle_loop(self) -> None:
         while True:
             self.draw_all_board()
             sleep(SIMULATION_SPEED)
             self.new_cicle()
 
 
-    def run_simulation(self):
+    # Make separate process of cicles so interface doesn't lag while new_cicle called
+    def run_simulation(self) -> None:
         if not self.simulation_state:
             print("Starting simulation")
             self.process.start()
             self.simulation_state = True
 
-    def stop_simulation(self):
+
+    # Stop this process
+    def stop_simulation(self) -> None:
         if self.simulation_state:
             print("Stopping simulation")
             self.process.terminate()
@@ -204,9 +246,9 @@ while True:
             print("Done!")
             exit()
 
-    # Mouse events
+    # Mouse click events
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Cell toggling catch
+            # Cell toggling catch and stopping time while dragging
             if event.button == 1:
                 if board_surface_rect.collidepoint(event.pos):
                     first_button_drag = True
@@ -230,12 +272,10 @@ while True:
                     offset_x = Board.board_rect.x - mouse_x
                     offset_y = Board.board_rect.y - mouse_y
 
-            if event.button == 4:
-                print("up")
-            if event.button == 5:
-                print("down")
 
+        # Mouse dragging events
         elif event.type == pygame.MOUSEMOTION:
+            # Create / remove cells while dragging
             if first_button_drag:
                 mouse_x, mouse_y = event.pos
                 row, column = (0, 0)
@@ -247,34 +287,31 @@ while True:
                     game_board.make_cell(row, column, game_board.board)
 
 
-            # Panning
+            # Panning while dragging
             if middle_button_drag:
                 mouse_x, mouse_y = event.pos
-                if 600 > Board.board_rect.x > -1400:
-                    Board.board_rect.x = mouse_x + offset_x
-                else:
-                    if Board.board_rect.x > 0:
-                        Board.board_rect.x -= 1
-                    else:
-                        Board.board_rect.x += 1
+                game_board.board_rect.x = mouse_x + offset_x
+                game_board.board_rect.y = mouse_y + offset_y
 
-                if 600 > Board.board_rect.y > -1400:
-                    Board.board_rect.y = mouse_y + offset_y
-                else:
-                    if Board.board_rect.y > 0:
-                        Board.board_rect.y -= 1
-                    else:
-                        Board.board_rect.y += 1
-
+    
+        # Mouse after click events
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:            
                 first_button_drag = False
+                # Run simulation again if it was running before cell toggling
                 if simulation_state_before_drag:
                     game_board.run_simulation()
 
             if event.button == 2:            
                 middle_button_drag = False
 
+        elif event.type == pygame.MOUSEWHEEL:
+            game_board.board_rect.x += event.x * 10
+            game_board.board_rect.y += event.y * 10
+            
+
+
+        # Keyboard events
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 game_board.board = game_board.new_cicle()
