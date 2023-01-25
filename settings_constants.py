@@ -1,3 +1,5 @@
+import pygame
+
 # Board settings
 BOARD_SIZE = 100
 NUMBER_OF_RANDOM_CELLS = 1000
@@ -11,8 +13,7 @@ CELL_SIZE = 20
 BUTTON_SURFACE_WIDTH = 400   # Width of button surface. Change only this value
 BUTTON_BORDER_WIDTH = 5 
 
-FPS = 30                     # Frames per second of main window
-SIMULATION_SPEED = 0.1      # Time in seconds of table update
+FPS = 60                     # Frames per second of main window
 
 
 # Colors 
@@ -35,3 +36,11 @@ BOARD_SURFACE_DIM = (WIDTH - PADDING * 2 - BUTTON_SURFACE_WIDTH, HEIGHT - PADDIN
 BOARD_SURFACE_CENTER = ((BOARD_SURFACE_DIM[0] // 2), BOARD_SURFACE_DIM[1] // 2) 
 BOARD_SIZE_IN_PX = BOARD_SIZE * (CELL_SIZE)
 BOARD_CENTER = BOARD_SIZE_IN_PX // 2
+BUTTON_X = BOARD_SURFACE_DIM[0] + PADDING * 3
+BUTTON_WIDTH = BUTTON_SURFACE_WIDTH - PADDING * 3
+
+
+pygame.init()
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+font = pygame.font.SysFont("Fira Code", 20)
