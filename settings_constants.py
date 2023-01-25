@@ -1,7 +1,7 @@
 import pygame
 
 # Board settings
-BOARD_SIZE = 100
+BOARD_SIZE = 128
 NUMBER_OF_RANDOM_CELLS = 1000
 
 # Sizes
@@ -20,7 +20,7 @@ FPS = 60                     # Frames per second of main window
 COLOR_BACKGROUND = (22, 22, 30)
 COLOR_BACKGROUND_BRIGHT = (26, 27, 38)
 COLOR_WHITE = (192, 202, 245)
-COLOR_WHITE_FADED = (230, 194, 230)
+COLOR_WHITE_FADED = (213, 188, 200)
 
 COLOR_DARK_PURPLE = "#231123"
 COLOR_ACCENT_BLUE = "#7AA2F7"

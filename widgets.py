@@ -98,7 +98,7 @@ class Slider(Widget):
     def update_slider_value(self):
         self.value = str(int(self.min_value + (self.slide.x - self.x - 15) / 
                     (self.width - 40) * (self.max_value - self.min_value)))
-        self.update_text(f"Sim speed: {self.value}")
+        self.update_text(f"Sim speed: 1/{self.value}")
 
 
     def action_on_release(self, event):
