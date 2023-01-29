@@ -21,9 +21,11 @@ class Board:
         self.simulation_state = False
         self.simulation_speed = 1
 
+
     # Initialize board with only zeroes
     def make_board(self):
         return np.zeros((BOARD_SIZE, BOARD_SIZE), dtype="bool")
+
 
     # Randomly make alive cells in board using NUMBER_OF_RANDOM_CELLS from settings
     def populate_with_random(self) -> None:
@@ -32,13 +34,16 @@ class Board:
             x, y = randint(0, BOARD_SIZE - 1), randint(0, BOARD_SIZE - 1)
             self.board[x][y] = True
 
+
     # Clear board
     def zerofy_board(self) -> None:
         self.board.fill(0)
 
+
     # Get cell state using x and y coordinates
     def get_cell_state(self, cell_x, cell_y) -> bool:
         return self.board[cell_x][cell_y] == 1
+
 
     # Kill cell (turn off) using x and y coordinates
     def remove_cell(self, cell_x, cell_y, board) -> None:
@@ -47,12 +52,14 @@ class Board:
         except IndexError:
             pass
 
+
     # Born cell (turn on) using x and y coordinates
     def make_cell(self, cell_x, cell_y, board) -> None:
         try:
             board[cell_x][cell_y] = 1
         except IndexError:
             pass
+
 
     # Get alive neighbours by Moore neighbourhood
     def get_neighbours(self, cell_x, cell_y, board) -> int:
@@ -66,6 +73,7 @@ class Board:
                         pass
 
         return neighbours
+
 
     # Create new generation using rules in match statement using neighbours count
     def new_cicle(self) -> None:
@@ -93,12 +101,14 @@ class Board:
         self.queue.put(temp_board)
         return temp_board
 
+
     # This is function to draw one cell from the board according to its coordinates and state
     def draw_one_cell(self, row, column, color) -> None:
         cell_rect = pygame.Rect(row * CELL_SIZE,  # Cell x position
                                 column * CELL_SIZE,  # Cell y position
                                 CELL_SIZE - CELL_PADDING, CELL_SIZE - CELL_PADDING)  # Cell size
         pygame.draw.rect(inner_board_surface, color, cell_rect)
+
 
     # Draw entire board
     def draw_all_board(self) -> None:
@@ -127,11 +137,13 @@ class Board:
 
         self.generation += 1
 
+
     # Focus center of the board
     def center_board(self) -> None:
         board_center = inner_board_surface.get_rect()
         board_center.center = BOARD_SURFACE_CENTER
         Board.board_rect = board_center
+
 
     # You can't go out of bounds
     def return_to_board(self) -> None:
@@ -143,6 +155,7 @@ class Board:
             self.board_rect.x = -BOARD_SIZE_IN_PX + 500
         if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
             self.board_rect.y = -BOARD_SIZE_IN_PX + 500
+
 
     # Process of making new cicles at specific speed using simulation_speed
     def new_cicle_loop(self) -> None:
@@ -168,7 +181,6 @@ class Board:
             self.run_simulation()
 
 
-
     # Make separate process of cicles so interface doesn't lag while new_cicle called
     def run_simulation(self) -> None:
         if not self.simulation_state:
@@ -176,6 +188,7 @@ class Board:
             self.process.start()
             self.simulation_state = True
             start_button.update_text("Stop")
+
 
     # Stop this process
     def stop_simulation(self) -> None:
@@ -187,6 +200,7 @@ class Board:
             self.process = Process(target=self.new_cicle_loop)
             self.simulation_state = False
             start_button.update_text("Start")
+
 
 def update_simulation_speed_by_slider():
     game_board.update_simulation_speed(int(simulation_speed_slider.value))
