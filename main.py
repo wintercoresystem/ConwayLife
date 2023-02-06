@@ -159,15 +159,14 @@ class Board:
 
     # You can't go out of bounds
     def return_to_board(self) -> None:
-        pass
-        # if self.board_rect.x > 500:
-        #     self.board_rect.x = 500
-        # if self.board_rect.y > 500:
-        #     self.board_rect.y = 500
-        # if self.board_rect.x < -BOARD_SIZE_IN_PX + 500:
-        #     self.board_rect.x = -BOARD_SIZE_IN_PX + 500
-        # if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
-        #     self.board_rect.y = -BOARD_SIZE_IN_PX + 500
+        if self.board_rect.x > 500:
+            self.board_rect.x = 500
+        if self.board_rect.y > 500:
+            self.board_rect.y = 500
+        if self.board_rect.x < -BOARD_SIZE_IN_PX + 500:
+            self.board_rect.x = -BOARD_SIZE_IN_PX + 500
+        if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
+            self.board_rect.y = -BOARD_SIZE_IN_PX + 500
 
 
     # Process of making new cicles at specific speed using simulation_speed
@@ -249,7 +248,6 @@ if __name__ == "__main__":
     middle_button_drag = False
     first_button_drag = False
     simulation_state_before_drag = False
-    game_board.board[BOARD_SIZE // 2][BOARD_SIZE // 2] = 1
 
     while True:
         for event in pygame.event.get():
