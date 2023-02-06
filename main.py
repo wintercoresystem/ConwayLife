@@ -5,6 +5,7 @@ from settings_constants import *
 from widgets import *
 from random import randint
 from time import sleep
+from time import time
 from multiprocessing import Process, Queue
 
 
@@ -37,12 +38,17 @@ class Board:
 
     # Clear board
     def zerofy_board(self) -> None:
+        self.stop_simulation()
         self.board.fill(0)
+        self.queue.put(self.board)
 
 
     # Get cell state using x and y coordinates
     def get_cell_state(self, cell_x, cell_y) -> bool:
-        return self.board[cell_x][cell_y] == 1
+        try:
+            return self.board[cell_x][cell_y] == 1
+        except IndexError:
+            pass
 
 
     # Kill cell (turn off) using x and y coordinates
@@ -117,23 +123,29 @@ class Board:
         else:
             self.board = self.queue.get()
 
-        for x in range(BOARD_SIZE):
-            for y in range(BOARD_SIZE):
-                # This is on state color
-                if self.get_cell_state(x, y):
-                    color = COLOR_DARK_PURPLE
-
-                # This is off state color
-                else:
-                    if self.simulation_state:  # This is color while simulation is running
-                        color = COLOR_WHITE
-                    else:
-                        color = COLOR_WHITE_FADED  # This is color while simulation is stopped
-                self.draw_one_cell(x, y, color)
-
         if self.generation == 0:  # Center board in the begining
             self.center_board()
         self.return_to_board()
+
+        for x in range(BOARD_SIZE):
+            for y in range(BOARD_SIZE):
+
+                if (x >= self.board_rect.left // -CELL_SIZE) \
+                        and (x <= (self.board_rect.left // -CELL_SIZE) + VISIBLE_CELLS_X) \
+                        and (y <= (self.board_rect.top // -CELL_SIZE) + VISIBLE_CELLS_Y) \
+                        and (y >= self.board_rect.top // -CELL_SIZE):
+                    # This is on state color
+                    if self.get_cell_state(x, y):
+                        color = COLOR_DARK_PURPLE
+
+                    # This is off state color
+                    else:
+                        if self.simulation_state:  # This is color while simulation is running
+                            color = COLOR_WHITE
+                        else:
+                            color = COLOR_WHITE_FADED  # This is color while simulation is stopped
+                    self.draw_one_cell(x, y, color)
+
 
         self.generation += 1
 
@@ -147,14 +159,15 @@ class Board:
 
     # You can't go out of bounds
     def return_to_board(self) -> None:
-        if self.board_rect.x > 500:
-            self.board_rect.x = 500
-        if self.board_rect.y > 500:
-            self.board_rect.y = 500
-        if self.board_rect.x < -BOARD_SIZE_IN_PX + 500:
-            self.board_rect.x = -BOARD_SIZE_IN_PX + 500
-        if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
-            self.board_rect.y = -BOARD_SIZE_IN_PX + 500
+        pass
+        # if self.board_rect.x > 500:
+        #     self.board_rect.x = 500
+        # if self.board_rect.y > 500:
+        #     self.board_rect.y = 500
+        # if self.board_rect.x < -BOARD_SIZE_IN_PX + 500:
+        #     self.board_rect.x = -BOARD_SIZE_IN_PX + 500
+        # if self.board_rect.y < -BOARD_SIZE_IN_PX + 500:
+        #     self.board_rect.y = -BOARD_SIZE_IN_PX + 500
 
 
     # Process of making new cicles at specific speed using simulation_speed
@@ -225,13 +238,18 @@ if __name__ == "__main__":
                                      min_value=1,
                                      max_value=40,
                                      action=update_simulation_speed_by_slider)
+    clear_button = Button(pos_x=BUTTON_X,
+                          width=BUTTON_WIDTH,
+                          text="Clear board",
+                          action=game_board.zerofy_board)
 
 
-    game_board.run_simulation()
+    # game_board.run_simulation()
 
     middle_button_drag = False
     first_button_drag = False
     simulation_state_before_drag = False
+    game_board.board[BOARD_SIZE // 2][BOARD_SIZE // 2] = 1
 
     while True:
         for event in pygame.event.get():
@@ -302,8 +320,8 @@ if __name__ == "__main__":
 
             elif event.type == pygame.MOUSEWHEEL:
                 # Pan with mouse wheel or touchpad
-                game_board.board_rect.x += event.x * 15
-                game_board.board_rect.y += event.y * 15
+                game_board.board_rect.x += event.x * 7
+                game_board.board_rect.y += event.y * 7
 
             # Keyboard events
             elif event.type == pygame.KEYDOWN:
